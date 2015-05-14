@@ -1,0 +1,22 @@
+# Permalinks
+#
+# Use of `relative_permalinks` ensures post links from the index work properly.
+permalink:           pretty
+relative_permalinks: true
+
+# Setup
+title:               Porotype
+tagline:             'Notes from a Vaadineer'
+description:         'Vaadin add-ons, tips, tricks, and tutorials'
+url:                 http://porotype.github.io
+baseurl:             ''
+paginate:            5
+
+# About/contact
+author:
+  name:              Marc Englund
+  url:               https://twitter.com/marcenglund
+  email:             marc@vaadin.com
+
+# Custom vars
+version:             1.0.0
