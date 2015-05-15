@@ -1,0 +1,62 @@
+---
+layout: post
+title: OAuth with Vaadin - Login with Facebook/Twitter/..
+date: '2012-05-16T16:47:41+03:00'
+tags:
+- vaadin
+- add-on
+- oauth
+- login
+- facebook
+- twitter
+- linkedin
+tumblr_url: http://blog.porotype.com/post/23164280523/oauth-with-vaadin-login-with-facebook-twitter
+---
+<p>Easy user registration and login still seems to be somewhat of a uncracked nut. Not because we&rsquo;re not trying, but it&rsquo;s actually a pretty hard nut to crack - at least in a way that pleases both developers and users. For example, while OpenID first seemed like a pretty good idea, it seems it&rsquo;s just too weird and complicated for the regular user, and recently several fairly prominent sites have abandoned it. </p>
+<p class="p1">The new favourite seems to be <strong>OAuth</strong>, popping up pretty much everywhere in the form of &ldquo;<strong>Log in with X</strong>&rdquo; -buttons. The reason is obvious: it&rsquo;s dead simple and fast for the users to use and understand - and that includes both registration and login. You just &ldquo;Log in with Facebook&rdquo;, and you&rsquo;re done. OAuth is also quite easy to implement in your application,  especially using some of the  libraries available. </p>
+<p class="p1">In this post, I&rsquo;ll present a simple solution for providing such login functionality in Vaadin applications (note that this is just one side of the coin - other OAuth scenarios are not presented).</p>
+<p class="p1"><!-- more --></p>
+<p class="p1">Though there are excellent libraries for Java applications that can be used with <strong>Vaadin</strong>, I decided to take it one step further and wrap one of these libraries into an even more simple wapper: <a href="http://vaadin.com/addon/oauth-buttons" title="OAuth Buttons">OAuth Buttons</a>. Yes: it&rsquo;s a set of Buttons for Vaadin, making log in with X as easy as new XButton().</p>
+<p class="p1">Well, almost, here is the full example:</p>
+<pre>OAuthListener oauthListener = new OAuthListener() {
+   public void userAuthenticated(User user) {
+      OAuthWindow.this.setContent(new LoggedInView(user));
+   }
+
+   public void failed(String reason) {
+      OAuthWindow.this.showNotification("Login failed", reason,
+                            Notification.TYPE_ERROR_MESSAGE);
+   }
+};
+
+// Login with Facebook:
+addComponent(new FacebookButton("FACEBOOK_API_KEY",
+                    "FACEBOOK_API_SECRET", oauthListener));
+</pre>
+<p class="p1">The callback will be called when the user has performed the login with the service in question.</p>
+<p class="p1">What happens, from a fairly high level perspective,  looks something like this:</p>
+<ul><li>the user browses to your application and clicks &lsquo;Log in with Facebook&rsquo;</li>
+</ul><p class="p1"><img src="http://media.tumblr.com/tumblr_m44apnNtlX1r4idn2.png"/></p>
+<ul><li>the user is forwarded to Facebook, which asks the user to log in there (if he&rsquo;s not already), and whether he wants to log in to your application</li>
+</ul><p class="p1"><img src="http://media.tumblr.com/tumblr_m44aq5yP8d1r4idn2.png"/></p>
+<ul><li>the user is returned to your application, along with some OAuth tokens</li>
+<li>you can use the tokens to get more informations about the user, and interact with the service&rsquo;s API</li>
+</ul><p class="p1"><img src="http://media.tumblr.com/tumblr_m44aqk1dOf1r4idn2.png"/></p>
+<p class="p1">If the user is a first time user, you can then ask him for additional information, such as email address (which you sometimes can obtain via OAuth, but usually not). Please note that it is much better to get out of the way as quickly as possible, and let the user get on with the cools stuff in your application instead - after all, that&rsquo;s why he came. Ask for additional information when you actually need it.</p>
+<p class="p2"><strong>Other uses</strong></p>
+<p class="p1">When the user 'logs in&rsquo; to your application, he actually authorizes you to connect to his account on the service he used for login, so you can do certain things (i.e API access). What you can do depends on the service (usually your application can ask for permission to do various things), but a fairly typical thing you could do is to post &ldquo;status&rdquo; messages or tweet. </p>
+<p class="p1">You could also use the OAuth Buttons to connect several accounts to one user, in order to be able to interact with those services (e.g post messages to both Twitter and Facebook*).</p>
+<p class="p1">OAuth Buttons makes use of the excellent Scribe OAuth library, and you can use the Scribe APIs directly to do stuff that OAuth Buttons do not support directly - the buttons are mostly intended for login.</p>
+<p class="p1"><sub>* please don&rsquo;t crosspost, it&rsquo;s incredibly annoying</sub></p>
+<p class="p2"><strong>Using OAuth Buttons</strong></p>
+<p class="p1">As could be seen in the example, using OAuth Buttons for login is super simple. That is, <strong>once you have your API keys.</strong> Each service usually requires you to register your application to obtain API keys, and the OAuth login will not work without API keys. The process for obtaining the keys differ from service to service; here are some quick screens from the most prominent services:</p>
+<p class="p1">Facebook</p>
+<p class="p1"><img src="http://media.tumblr.com/tumblr_m44atrSb2F1r4idn2.png"/></p>
+<p class="p2">Twitter</p>
+<p class="p2"><img src="http://media.tumblr.com/tumblr_m44auhvpyX1r4idn2.png"/></p>
+<p class="p1">LinkedIn</p>
+<p class="p1"><img src="http://media.tumblr.com/tumblr_m44auzRm9b1r4idn2.png"/></p>
+
+<p class="p1">As usual, let me know if something is unclear, or if you want something more in-depth about some aspect.</p>
+<p class="p1">The Vaadin Directory page for the OAuth Buttons add-on has links to all the relevant resources, such as sources, issue tracker, and forum thread:</p>
+<p class="p1"><a href="http://vaadin.com/addon/oauth-buttons" title="http://vaadin.com/addon/oauth-buttons">http://vaadin.com/addon/oauth-buttons</a></p>

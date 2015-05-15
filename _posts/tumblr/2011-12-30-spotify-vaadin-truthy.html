@@ -1,0 +1,57 @@
+---
+layout: post
+title: Spotify + Vaadin = truthy
+date: '2011-12-30T17:49:00+02:00'
+tags:
+- vaadin
+- spotify
+- api
+- labs
+- experiment
+tumblr_url: http://blog.porotype.com/post/15028802108/spotify-vaadin-truthy
+---
+<p>For the last workday of the year, I decided to spend my @Vaadin #CF on something a bit different: @Spotify + @Vaadin </p>
+<!-- more -->
+<p>Spotify recently announced the <a href="http://developer.spotify.com/en/spotify-apps-api/overview/" title="Spotify Apps API overview">Spotify Apps API</a>, and I conveniently gained access today. This being the last workday of the year, I decided to spend some CF time (the Vaadineer version of Googles 20% time) checking if it&rsquo;s possible to use <a href="https://vaadin.com" title="Vaadin.com">Vaadin</a> to make Spotify Apps.</p>
+<p>The environment provided is basically Chromium, and you can grant your app remote XHR access to specific sites - in short, it lookes pretty promising! And indeed, I was able to run a Vaadin application quite easily.</p>
+<p><a href="http://dl.dropbox.com/u/286831/porotype/SpotifyVaadin.jpg" title="Click for hi-res in new window" target="_blank"><img src="http://media.tumblr.com/tumblr_lygjh7PTfw1r4idn2.jpg"/></a></p>
+<p><strong>However</strong>, before you get your hopes up, I found this notice in the documentataion:</p>
+<blockquote>
+<p>In order for Spotify to be able to verify the security aspects of the submitted applications, the JavaScript code must not be minified or obfuscated.</p>
+</blockquote>
+<p>Uh-oh. Vaadin is using GWT, and GWT javascript is indeed quite obfuscated. I guess you could compile using <em>pretty</em> or <em>detailed</em> modes, but I&rsquo;m not sure that would be sufficient. I guess I&rsquo;ll have to contact Spotify and ask&hellip;</p>
+<p>Anyway, if you still want to give it a shot, here&rsquo;s the basic procedure.</p>
+<h1>Spotifyifying a Vaadin application</h1>
+<p>First get a version of Spotify that supports Apps (then apply for Apps developer status, so you get the devel tools in Spotify).</p>
+<p>Then make a Spotify folder (<em>~/Spotify</em> on Mac, <em>My Documents/Spotify</em> on Win) and a folder for you app under that (e.g <em>~Spotify/vaadin/</em>).</p>
+<p>Now choose a Vaadin Application you want to spotifyify. Any test application will do for now. Browse to it (make sure it works) and copy the content of the page into <em>~Spotify/vaadin/index.html.</em> </p>
+<p>Next, create a <em>manifest.json</em> in the same folder with the following content:</p>
+<pre><code>
+{
+	"BundleType": "Application",
+	"AppIcon": {
+		"18x18": "vaadin.png"
+	},
+	"AppName": {
+		"en": "Vaadin"
+	},
+	"SupportedLanguages": [
+		"en"
+	],
+	"RequiredPermissions": [
+		"http://192.168.11.18:8080"
+	]
+}</code></pre>
+<p>Replace stuff to your liking - especially make sure the <em>RequiredPermissons </em>points to your application. Mine is running at <em><a href="http://192.168.11.18:8080">http://192.168.11.18:8080</a>.</em></p>
+<p>Now copy the whole <em>VAADIN</em> folder from your Vaadin application to e.g <em>~Spotify/vaadin/VAADIN/ </em>- yes, we can actually install the widgetset and themes locally, and only make UIDL requests to the server. Neat.</p>
+<p>In order for the application to know where the server is located, we&rsquo;ll need to edit <em>index.html</em> just a little bit: look for the part that says <em>appUri:&rsquo;&hellip;&rsquo; </em>and make it point to your server. Mine looks like this:</p>
+<blockquote>
+<p>appUri:&lsquo;http://192.168.11.18:8080/&rsquo;</p>
+</blockquote>
+<p>That is basically it! Fire up Spotify, and search for <em>spotify:app:vaadin</em> where the last part is the name of your app (<em>vaadin</em> in my case).</p>
+<h1>Now what?</h1>
+<p>The main problem with this is that it&rsquo;s quite unclear if apps like this would be allowed into Spotify. I&rsquo;m guessing the answer is a firm 'no&rsquo; unless you compile pretty/detailed, and perhaps not even then. This is something Spotify needs to comment on - I&rsquo;ll get back to you if I find out the answer! :-) Until then, this will remain an interesting experiment.</p>
+<p>Ignoring the possible problems with app submission, the obvious next steps would be:</p>
+<ul><li>Actual API integration. Vaadin add-on + GWT library. </li>
+<li>Customized  theme based on the css themes Spotify provide.</li>
+</ul><p>Anyway, have a nice new years eve, and let me know if you have some thoughts on this topic!</p>

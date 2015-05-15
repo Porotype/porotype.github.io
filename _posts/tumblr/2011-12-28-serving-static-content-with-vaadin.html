@@ -1,0 +1,75 @@
+---
+layout: post
+title: 'Serving static content with Vaadin  '
+date: '2011-12-28T11:35:00+02:00'
+tags:
+- resources
+- static
+- vaadin
+- performance
+tumblr_url: http://blog.porotype.com/post/14911805208/serving-static-content-with-vaadin
+---
+<p><a href="http://www.flickr.com/photos/sashawolff/3113745251/" title="TV Nation: 16/365 by SashaW, on Flickr"><img align="right" alt="TV Nation: 16/365" height="181" src="http://farm4.staticflickr.com/3039/3113745251_82a719f4a9_m.jpg" width="240"/></a></p>
+<p>I’ve heard the question “how do I serve static resources with <a href="https://vaadin.com" title="Vaadin.com">Vaadin</a>” (and it’s relatives) quite many times, so I thought it’s time to address this subject.</p>
+<p>This is actually not so much a Vaadin specific issue, but mostly a generic servlet issue - but there are some Vaadin specific things you should know.</p>
+<p>Also, Vaadin applications are quite often mapped to “/*”, which requires you to know how to configure your setup correctly to use the ‘default’ servlet for static content - I think this is the main reason Vaadin developers seem to struggle with this.</p>
+<p>Let’s start:<!-- more --></p>
+<h2>Using the <em>default</em> servlet</h2>
+<p>Quite often you have your Vaadin application (or any servlet for that matter) set up to handle all paths ‘below’ its context:</p>
+<pre><code>&lt;servlet&gt;
+    &lt;servlet-name&gt;MyApp&lt;/servlet-name&gt;
+    ...
+&lt;/servlet&gt;
+&lt;servlet-mapping&gt;
+    &lt;servlet-name&gt;MyApp&lt;/servlet-name&gt;
+    &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;
+</code></pre>
+<p>The application will now handle http://…/, http://…/asd as well as http://…/asd/foo and so on.</p>
+<p>But wait! You have some static files you want to serve - perhaps an image, or a html help file. You create a folder named ‘static’ and put the files there, but http://…/static/help.html just renders the servlet, because it’s handling all the things. <a href="http://tomcat.apache.org/tomcat-7.0-doc/default-servlet.html" title="Default servlet">Default servlet</a> to the rescue:</p>
+<pre><code>&lt;servlet-mapping&gt;
+    &lt;servlet-name&gt;default&lt;/servlet-name&gt;
+    &lt;url-pattern&gt;/static/*&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;
+</code></pre>
+<p>This tells your servlet container to use the  ‘default’ servlet for anything under the ‘static’ path (I tested with Tomcat and Jetty - YMMV if you are using something else). The default servlet is a built-in servlet that is made for serving static files (note that you are still serving files trough a servlet - more on that later).</p>
+<h2>Serving VAADIN</h2>
+<p>Vaadin applications use some static resources, such as widgetsets (GWT javascript files) and themes (css and image files). These are loaded from paths starting with ‘VAADIN’, as you can see with e.g Firebug. For convenience these file are by default packaged into the vaadin.jar and served from it trough the Vaadin servlet, but this is not the most efficient way, and it’s recommended that you deploy the static resources separately in production environments.</p>
+<p>Let’s start by using the ‘default’ servlet to serve static Vaadin resources: first extract the ‘VAADIN’ folder from the vaadin.jar to the root of your web application (a jar is a regular zip file - use unzip or any application that can handle zips):</p>
+<pre><code>    marc$ pwd
+    /Users/marc/Projects/Staticfiles/WebContent
+    marc$ unzip WEB-INF/lib/vaadin-6.7.1.jar `unzip -Z -1 WEB-INF/lib/vaadin-6.7.1.jar | grep VAADIN/`
+</code></pre>
+<p>Then add this after your application’s mapping in web.xml:</p>
+<pre><code>&lt;servlet-mapping&gt;
+    &lt;servlet-name&gt;default&lt;/servlet-name&gt;
+    &lt;url-pattern&gt;/VAADIN/*&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;
+</code></pre>
+<p>NOTE If you update the vaadin.jar, you have to remember to update the VAADIN folder (by re-extracting from the new jar), since the files in the jar might have changed. This is one of the reasons it’s convenient to serve the files directly from the jar while developing the application.</p>
+<p>However, we’re still serving the static files trough a servlet, which is usually not the most efficient way (note that different servlet containers perform differently in this regard). Let’s look at how that can be fixed.</p>
+<h2>Going for performance</h2>
+<p>Serving static files trough the servlet containers default servlet is usually not seen as the most efficient way to serve static files. Instead, there are servers that are particularly good at serving static content, so for production environments it might make sense to have a setup where the static content is served by such a server, while the application requests are passed trough to the servlet container.</p>
+<p>Note that servers evolve, and you might be able to get sufficient performance for your use-case without using separate file servers and get away with a simpler setup.</p>
+<p>Also, I am not going to show you how to configure any particular server for performance, since this might vary depending on your setup. Instead, I’ll just show the basic idea, and point in (hopefully) the right direction.</p>
+<p>YMMV, please test it yourself :-)</p>
+<h3>Apache httpd</h3>
+<p>A common setup is to have an Apache server in front of the servlet container. AJP currently seems to be the <a href="http://tomcat.apache.org/tomcat-7.0-doc/connectors.html" title="Tomcat connectors">prefered way to do this with Tomcat</a>, while mod_proxy is strongly <a href="http://wiki.eclipse.org/Jetty/Tutorial/Apache" title="Apache and Jetty">recommended for Jetty</a>.</p>
+<h3>Nginx</h3>
+<p>Another setup that is very popular at the moment to use <a href="http://nginx.org/" title="Nginx">Nginx</a> to serve static files. Setup Nginx to listen to port 80 (or whichever port your application should run on), tomcat/jetty on 8080, and do something like this in your nginx.conf:</p>
+<pre><code>location / {
+    #servlet
+    proxy_pass <a href="http://127.0.0.1:8080/;">http://127.0.0.1:8080/;</a>
+}
+location ~ .*/VAADIN/.* {
+    root   &lt;FILESYSTEM_PATH_TO_STATIC_CONTENT&gt;;
+    index  index.html index.htm;
+}
+</code></pre>
+<p>Note that this is a quick example - you should familiarize yourself with Nginx configuration and set it up to suit your needs. You might want to look at the <a href="http://wiki.nginx.org/JavaServers" title="Nginx and JavaServers">JavaServers</a> example.</p>
+<h3>CDNS</h3>
+<p>Finally, you might want to consider deploying your static files on a <a href="http://en.wikipedia.org/wiki/Content_delivery_network" title="CDNS on Wikipedia">CDNS</a> instead of serving the content yourself.</p>
+<h2>Summary</h2>
+<p>When making a production deployment, please make sure that static resources are extracted from the vaadin.jar and served using a method that matches your performance requirements (‘default’ servlet, Apache httpd, Nginx, CDNS, …) <strong>Verify</strong> that your requirements are met <strong>by testing</strong> and <strong>measuring</strong>!</p>
+<p>Also make sure that the cache headers are set appropriately for the static content, and that gzip compression is enabled - also for JSON responses (unless you have specific reasons for not doing so).</p>
+<p>Finally, if you want me to elaborate on any of this, please let me know!</p>

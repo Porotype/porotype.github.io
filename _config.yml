@@ -1,3 +1,5 @@
+# Run: % bundle exec jekyll serve
+#
 # Permalinks
 #
 # Use of `relative_permalinks` ensures post links from the index work properly.
@@ -8,15 +10,15 @@ relative_permalinks: true
 title:               Porotype
 tagline:             'Notes from a Vaadineer'
 description:         'Vaadin add-ons, tips, tricks, and tutorials'
-url:                 http://porotype.github.io
+url:                 'http://porotype.github.io'
 baseurl:             ''
-paginate:            5
+paginate:            1
 
 # About/contact
 author:
-  name:              Marc Englund
-  url:               https://twitter.com/marcenglund
-  email:             marc@vaadin.com
+  name:              'Marc Englund'
+  url:               'https://twitter.com/marcenglund'
+  email:             'marc@vaadin.com'
 
 # Custom vars
 version:             1.0.0

@@ -1,0 +1,69 @@
+---
+layout: post
+title: Sharing Vaadin applications on Facebook
+date: '2014-02-07T18:06:00+02:00'
+tags:
+- vaadin
+- facebook
+- g+
+- share
+- application
+- open graph
+tumblr_url: http://blog.porotype.com/post/75903660528/sharing-vaadin-applications-on-facebook
+---
+<p class="p1"><img alt="image" src="https://31.media.tumblr.com/eb927447af314f762f25e048ab39b458/tumblr_inline_n0mv5d6Iyh1r4idn2.png"/></p>
+<p class="p1">Have you ever wondered where the little ‘preview’ thumbnail comes from when you share links on Facebook (and G+), and how you might go about customising that for your Vaadin application? Read on!</p>
+<p class="p2"><!-- more --></p>
+<p class="p1">Facebook actually crawls the page you share for suitable images, but this does not always work out in an optimal way. For instance, since Vaadin applications are loaded dynamically, Facebook previews do not work at all. Fortunately you can get around this by customising the Vaadin ‘bootstrap’ page - or any web page for that matter, but we’ll look at how to do it with Vaadin.</p>
+<p class="p1">Facebook allows you to customise how it sees your page, by using Open Graph tags. You can read all about them here: <a href="https://developers.facebook.com/docs/opengraph/howtos/maximizing-distribution-media-content">https://developers.facebook.com/docs/opengraph/howtos/maximizing-distribution-media-content</a></p>
+<p class="p1">Basically what you want to do is add a few meta-tags - the most interesting one being <em>og:image</em>, which specifies the preview image. But why stop there, let’s add the basic set:</p>
+<ul><li><span>og:title – The title of your article, excluding any branding.</span></li>
+<li><span></span>og:site_name - The name of your website. </li>
+<li>og:url – This URL serves as the unique identifier for your post. </li>
+<li>og:description – A detailed description of the piece of content, usually between 2 and 4 sentences.</li>
+<li><span>og:image – This is an image associated with your media. We suggest that you use an image of at least 1200x630 pixels.</span></li>
+</ul><p class="p2">First we should add the appropriate namespace <em><span class="s1">xmlns:fb</span><span class="s2">=&ldquo;</span><span class="s1"><a href="http://ogp.me/ns/fb#">http://ogp.me/ns/fb#</a></span></em><span class="s2"><em>”</em> for</span> the head-tag, then add the og-tags as meta-tags. </p>
+<p class="p3"><span class="s3">In order to do this in Vaadin, we need to make a </span><em>BootstrapListener</em> and add it to our <em>VaadinSession</em>, all of which can be done in a <em>SessionInitListener</em> added to our <em>VaadinServletService</em> in an overridden <em>servletInitialized()</em>. <strong>Phew!</strong> Let see that in code, please:</p>
+<pre><code>
+public static class Servlet extends VaadinServlet {
+  protected void servletInitialized() throws ServletException {
+    super.servletInitialized();
+    getService().addSessionInitListener(new SessionInitListener() {
+      public void sessionInit(SessionInitEvent event) throws ServiceException {
+        event.getSession().addBootstrapListener(new SharePreviewBootstrap());
+      }
+    });
+  }
+}
+</code></pre>
+<p class="p3">Yes, that’s quite a bit of boilerplate - I’m considering making this into an add-on to avoid that.</p>
+<p class="p3">But let’s move on.</p>
+<p class="p3">In the Bootstrap listener, all you need to do is modify the bootstrap page in <em>modifyBootstrapPage()</em>. You can add the namespace like so:</p>
+<pre><code>Element head = response.getDocument().head()
+head.attr("xmlns:fb", "http://ogp.me/ns/fb#");
+</code></pre>
+<p class="p3">And then add the meta-tags like this:</p>
+<pre><code>Element meta = new Element(Tag.valueOf("meta"), "");
+meta.attr("property", "og:image"); 
+meta.attr("content",“”);
+head.appendChild(meta);
+</code></pre>
+<p class="p3">Repeat that for all the Open Graph tags you want to add, then deploy, then enter your applications url in the share-box on Facebook, and voila: preview. Well, as long as you remembered to deploy the actual image too…</p>
+<p class="p3">You can try it by sharing this example (note that you do not actually have to press ‘share’, just enter the url): <a href="http://marc.app.fi/SharePreview/">http://marc.app.fi/SharePreview/</a></p>
+<p class="p3">G+ does the same thing, by the way - and probably some other sites, let me know your findings.</p>
+<p class="p3">Also feel free to ‘view source’ for the example application to see all the tags added. </p>
+<p class="p4">You should also try the Facebook debugger, which will take a look att your url, and tell you what is good and what is not: <a href="https://developers.facebook.com/tools/debug/">https://developers.facebook.com/tools/debug/</a></p>
+<p class="p4">One more detail: You can dynamically choose which image to show depending on the request. You might for instance want to send a different one for different sections:</p>
+<pre><code>String path = response.getRequest().getPathInfo();
+if (path != null &amp; path.endsWith(…) {
+	// send the desired tags
+}
+</code></pre>
+<p class="p3">Or you might want to do all of this just for Facebook, in which case you can use the User-Agent:</p>
+<pre><code>String ua = response.getRequest().getHeader("User-Agent");
+if (ua.startsWith(“facebookexternalhit”)) {
+	// It’s Facebook! Crawling!
+}
+</code></pre>
+<p class="p4">Happy sharing!</p>
+<p class="p4">And let me know if you’d like this to be a add-on or something!</p>

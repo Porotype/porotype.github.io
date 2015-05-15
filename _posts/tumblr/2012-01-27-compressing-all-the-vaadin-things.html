@@ -1,0 +1,62 @@
+---
+layout: post
+title: Compressing all the Vaadin things
+date: '2012-01-27T14:59:00+02:00'
+tags:
+- vaadin
+- performance
+- gzip
+- compression
+- json
+- uidl
+tumblr_url: http://blog.porotype.com/post/16575655597/compressing-all-the-vaadin-things
+---
+<p class="p1">It&rsquo;s usually a good idea to gzip compress all the plaintext http traffic in <a href="https://vaadin.com" title="vaadin.com">@Vaadin</a> for speed and in order to minimize the amount of transferred data. This is another server-specific configuration, and is again applicable generally and not just for Vaadin.</p>
+<!-- more -->
+<p><em>UPDATE: Click on images for hi-res in new window.</em></p>
+<h1>What?</h1>
+<p class="p1">When gzip compression is enabled, the server will compress the data sent to the browser, often resulting in quite dramatic reduction of the size of the transferred data thus download time. Compression is used for plain-text content, which can typically be compressed quite efficiently (achieved compression ratio vs. increase in CPU load) with the gzip algorithm. If you don&rsquo;t have a very specific reason not to do so, it&rsquo;s usually a good idea to let the server  handle this (as opposed to rolling your own implementation), since it will be optimized for this use-case.</p>
+<p class="p1">The decision whether to compress is actually depends on a number of things: first the browser tells the server whether or not it supports compression using the <em>Accept-Encoding</em> http header, and if the server also has compression support turned on it will check the mime-type of the content, and potentially the length, before deciding whether or not to compress. If the content is compressed, the server will add a <em>Content-Encoding</em> http header to inform the browser of this fact. You can get <a href="http://en.wikipedia.org/wiki/HTTP_compression" title="Wikipedia: HTTP compression">more details about this form Wikipedia.</a></p>
+<h1>When?</h1>
+<p class="p1">We obviously don&rsquo;t want to (try to) compress stuff that is already very well compressed, such as jpeg files, so the server needs to know which mime-types we want to compress. Usually the server comes preconfigured to compress some well-known types, such as HTML and CSS, but one mime-type that is usually missing is the one used for the JSON communication that Vaadin uses - namely <em>application/json</em>. </p>
+<p class="p1">Servers also usually support configuring a minimum content-length for compression, since compression does not work very well for very short content. In the Vaadin JSON case however, the content-length is not known at the time the headers are sent, so it&rsquo;s all or nothing - the minimum content length can not be checked. This is not usually a problem, though - <a href="http://code.google.com/speed/page-speed/docs/payload.html#GzipCompression" title="Google: Minimize payload / Gzip">Google recommends</a> a limit between 150-1000 bytes, which is easily exceeded by most Vaadin JSON messages. If you have lots of very small messages (maybe some sort of polling/push) you might want to check this though.</p>
+<h1>How?</h1>
+<p class="p1">This is again a server specific configuration issue; please also read your server&rsquo;s documentation for details. The general method is to make sure compression is enabled (it usually is), and that it&rsquo;s enabled for all the appropriate mime-types (something might be missing). We&rsquo;ll take a quick look at the usual suspects, Tomcat and Jetty.</p>
+<h2>Tomcat</h2>
+<p class="p1">In Tomcat, you should configure your connector to have <em>compression=&ldquo;on&rdquo;</em> and <em>compressableMimeType</em> set to the appropriate mime-types (the default in Tomcat 7 is <em>&ldquo;text/html,text/xml,text/plain&rdquo;, </em>which indeed is missing <em>application/json</em>). Additionally, you can tune the <em>compressionMinSize</em> to match <a href="http://code.google.com/speed/page-speed/docs/payload.html#GzipCompression" title="Google: Gzip compression">Googles recommendations</a>. You can do this in the <strong>server.xml</strong>:</p>
+<pre><code>&lt;Connector port="8080"
+   …OTHER STUFF...
+   compression="on"
+   compressionMinSize="500"
+   compressableMimeType="text/html,text/xml,text/plain,application/javascript,application/json"/&gt;</code></pre>
+<p class="p1">The documentation can be found here: <a href="http://tomcat.apache.org/tomcat-7.0-doc/config/http.html">http://tomcat.apache.org/tomcat-7.0-doc/config/http.html</a></p>
+<h2>Jetty</h2>
+<p class="p1">In Jetty, you have to enable and configure the <em>GzipFilter</em> for your application. You can do this by adding a filter definition to your <strong>web.xml</strong>:</p>
+<pre><code>
+&lt;filter&gt;
+    &lt;filter-name&gt;GzipFilter&lt;/filter-name&gt;
+    &lt;filter-class&gt;org.eclipse.jetty.servlets.GzipFilter&lt;/filter-class&gt;
+    &lt;init-param&gt;
+      &lt;param-name&gt;mimeTypes&lt;/param-name&gt;
+      &lt;param-value&gt;text/html,text/xml,text/plain,application/javascript,application/json&lt;/param-value&gt;
+    &lt;/init-param&gt;
+&lt;/filter&gt;
+
+&lt;filter-mapping&gt;
+    &lt;filter-name&gt;GzipFilter&lt;/filter-name&gt;
+    &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+&lt;/filter-mapping&gt;
+</code></pre>
+<p class="p1">Note that you could actually apply the filter to just Vaadin JSON requests (<em>*/UIDL</em>), but then no other content would be compressed.</p>
+<p class="p1">Also, with Jetty you can pre-compress static files (index.html -&gt; index.html.gz) and easily have Jetty serve those instead. Refer to the documentation for details: <a href="http://docs.codehaus.org/display/JETTY/GZIP+Compression">http://docs.codehaus.org/display/JETTY/GZIP+Compression</a></p>
+<h1>Testing</h1>
+<p class="p1">Ok, so now you know in theory how to enable gzip compression for Vaadin in Tomcat and Jetty. But in practice <strong>you&rsquo;ll want to make sure</strong> that all the appropriate mime-types are compressed, and verify that it&rsquo;s actually working and making a difference. You can use the Development Tools in Chrome, or Firebug in Firefox to do that - let&rsquo;s take a look:</p>
+<p class="p1"><a href="http://dl.dropbox.com/u/286831/porotype/ChromeDevTools.jpg" title="Click for hi-rez (new window)" target="_blank"><img src="http://media.tumblr.com/tumblr_lygedrxiQu1r4idn2.jpg"/></a></p>
+<p class="p1">Here is how a compressed response looks (in Chrome):</p>
+<p class="p1"><a href="http://dl.dropbox.com/u/286831/porotype/ChromeDevToolsGzip.jpg" title="Click for hi-res in new window" target="_blank"><img src="http://media.tumblr.com/tumblr_lygegbv6zz1r4idn2.jpg"/></a></p>
+<p class="p1">And here is a response without compression (in Chrome):</p>
+<p class="p1"><a href="http://dl.dropbox.com/u/286831/porotype/ChromeDevToolsNoGzip.jpg" title="Click for hi-res in new window" target="_blank"><img src="http://media.tumblr.com/tumblr_lygeh003xA1r4idn2.jpg"/></a></p>
+<p class="p1">Here is the same request, compressed and uncompressed (in Firefox):</p>
+<p class="p1"><a href="http://dl.dropbox.com/u/286831/porotype/FirebugGzipOnOff.jpg" title="Click for hi-res in new window" target="_blank"><img src="http://media.tumblr.com/tumblr_lygeikEGE91r4idn2.jpg"/></a></p>
+<p class="p1">I suggest you try it out to learn how to spot the difference: fire up a project in Eclipse, and have a look in Chrome/Firebug - chances are you don&rsquo;t have any compression enabled. Then try modifying server.xml and see how it affects the responses.</p>
+<p class="p1">As always, feedback is welcome! Errors, comments, more details needed - let me know!</p>

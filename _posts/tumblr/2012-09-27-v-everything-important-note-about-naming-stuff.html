@@ -1,0 +1,24 @@
+---
+layout: post
+title: V-everything - important note about naming stuff in Vaadin
+date: '2012-09-27T15:05:59+03:00'
+tags:
+- vaadin
+- naming
+- css
+- stylename
+- prefix
+tumblr_url: http://blog.porotype.com/post/32390164866/v-everything-important-note-about-naming-stuff
+---
+<p class="p1">There seems to be a lot of misconceptions about naming conventions in Vaadin applications and add-ons, so I thought I&rsquo;d better attempt to clear things up right away.</p>
+<p class="p1">I&rsquo;ll make sure the following is stated clearly in the upcoming Vaadin 7 tutorials and such, but it applies to v6 too, and is IMHO an important enough point to bring it up right away. </p>
+<p class="p1">There is a convention that some things (css classnames, client side widgets) in Vaadin are prefixed with the letter &ldquo;v&rdquo;. This convention is apparently often copied into add-ons and projects using Vaadin, but:</p>
+<p class="p2"><strong>Please do not prefix your things with &ldquo;v&rdquo;, it is a scoping prefix intended for the Vaadin core.</strong></p>
+<p class="p1"><!-- more --></p>
+<p class="p1">Why? Consider the following:</p>
+<p class="p1">In your project you name have some custom things that you need to style, and you give them the stylename &ldquo;v-wrap&rdquo;, and everything works fine. Then along comes Vaadin 7 (or some other new version, or a new add-on you want to use), and check it out: it also uses &ldquo;v-wrap&rdquo;, causing either a) your component to get styles you don&rsquo;t want or b) causing your styles to be applied to the built-in element.</p>
+<p class="p1">This is exactly the reason why the built-in stylenames are prefixed in the first place! It&rsquo;s a scope, akin to package names and such, introduced to avoid naming conflicts. It avoids problems when introducing new stylenames, and avoids style-interference when embedding (e.g Liferay defines a lot of styles that could potentially interfere otherwise).</p>
+<p class="p1">Instead of using &ldquo;v&rdquo;, <strong>please invent your own prefix</strong> (or no prefix, if you know this will not cause problems). The best would obviously be to have a fully qualified prefix (e.g com_vaadin), but that would be pretty long especially for the core components that are used extensively. </p>
+<p class="p1">As you can see, this is particularly important for stylenames, where style-interference can cause a lot of problems. </p>
+<p class="p1">As for the naming of java classes, the VComponent naming scheme is mostly a convenience. It becomes confusing and error-prone to have potentially three different things named &ldquo;Button&rdquo;: a server-side Vaadin component Button, a client-side Vaadin widget Button that extends the GWT widget Button. The need for a naming scheme like this depends a lot on what you&rsquo;re doing, though. It&rsquo;s a regular java naming problem, ymmv, do as you see fit - since java has proper packages, naming should not actually cause any fatal.</p>
+<p class="p1"><strong>In summary: think twice before copying a naming scheme, and <em>absolutely do not</em> prefix your stylenames with &ldquo;v-&rdquo;.</strong></p>
