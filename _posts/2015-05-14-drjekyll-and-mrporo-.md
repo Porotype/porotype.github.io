@@ -2,9 +2,10 @@
 layout: post
 title: Dr Jekyll and Mr Poro
 ---
+<img src="{{ site.baseurl }}/public/porotype.png" alt="Porotype logo" align="right"/>
 
-This is the first post in the Jekyll-powered, GitHub pages hosted version of Porotype.
+I've just migrated all the Porotype posts from Tumblr to GitHub Pages (Jekyll).
 
-Now I just have to figure out how to import all the old stuff from Tumblr, then make the domain point here instead. 
+I'm sure the look and feel will change as I get to know Jekyll better. Feedback welcome!
 
-Hope you'll like it.
+Next step: Move the domain to point in the right direction...

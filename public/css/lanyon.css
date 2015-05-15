@@ -376,11 +376,18 @@ a.sidebar-nav-item:focus {
 /* Pagination items can be `span`s or `a`s */
 .pagination-item {
   display: block;
-  padding: 1rem;
+  padding: 0.7rem;
   border: 1px solid #eee;
+ 
+    overflow: hidden;
+    white-space: nowrap;
+    color: #ccc;
+    font-size: 85%;
+    
 }
 .pagination-item:first-child {
   margin-bottom: -1px;
+    
 }
 
 /* Only provide a hover state for linked pagination items */
@@ -390,7 +397,7 @@ a.pagination-item:hover {
 
 @media (min-width: 30em) {
   .pagination {
-    margin: 3rem 0;
+    margin: 0 0 1rem 0;
   }
   .pagination-item {
     float: left;
