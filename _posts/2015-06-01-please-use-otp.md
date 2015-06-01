@@ -39,10 +39,10 @@ Option 1 is easy to implement - you only need to get the key to the user securel
 Option 2 might be a bit harder to implement (at least you need reliable SMS sending capabilities), but for many users this is much easier. Setting up an app and understanding how it works might prove overwhelming. 
 
 ### Enabling 2FA
-One important step, where things can go seriously wrong, is the point when 2FA is enabled for an account. At this point you need to make sure the user has understood and has everything set up in working order. Usually you require the user to input a one-time password ("loggin in" once), before actually enabling 2FA for the account.
+One important step, where things can go seriously wrong, is the point when 2FA is enabled for an account. At this point you need to make sure the user has understood and has everything set up in working order. Usually you require the user to input a one-time password ("logging in" once), before actually enabling 2FA for the account.
 
 ### Account recovery
-Phone numbers change, and phones break, go missing and get stolen - sooner or later you will need to recover an account for a user. If you make it [too easy](http://shubh.am/how-i-bypassed-2-factor-authentication-on-google-yahoo-linkedin-and-many-others/) you might as well not have passwords at all - too hard, and a lot of users will end up locked-out. 
+Phone numbers change, and phones break, go missing and get stolen - sooner or later you will need to recover an account for a user. If you make it [too easy](http://shubh.am/how-i-bypassed-2-factor-authentication-on-google-yahoo-linkedin-and-many-others/) you might as well not have passwords at all. Make it too hard, and a lot of users will end up locked-out. 
 
 Google, for instance, allows users to print a list of back-up codes. 
 
@@ -55,9 +55,9 @@ When and how often to ask for a second authentication really depends on your app
 
 Starting up the 2FA application, or waiting for an SMS, can be annoying, and asking at each login might not be needed. Some applications has a "Remember this device [for some amount of time]" option - you will be asked again when logging in from another device (or browser), or when the application deems it necessary. Some applications get suspicious when a user logs in from a different location (e.g country, based on ip address), for instance.
 
-Another thing to consider is that login might not be the only critical operation. You might want to protect some other opration(s) by asking for authentication at that stage. The obvious example being changing password, and disabling 2FA - you should definitely ask for authentication at that point. Some other examples: making a payment, publishing an article, deleting an item...
+Another thing to consider is that login might not be the only critical operation. You might want to protect some other opration(s) by asking for authentication at that stage. The obvious example being changing password, and disabling 2FA - you should definitely ask for authentication at that point. Some other examples: making a payment, publishing an article, deleting an item, and so on.
 
-In fact, depending on what your application does, you might not want to use 2FA at login at all, instead asking for it when really needed, for maximum protection with minimum annoyance...
+In fact, depending on what your application does, you might not want to use 2FA at login at all, instead asking for it when really needed, for maximum protection with minimum annoyance.
 
 For instance, the Nordea Mobile Bank app allows the user to log in and view account balance and transactions using just a pin code - but to make a payment, you need to be fully authenticated, and the app will ask for passwords when needed. It's a smart way of minimizing the friction, while protecting the important stuff.
 
