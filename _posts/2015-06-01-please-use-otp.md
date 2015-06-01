@@ -24,7 +24,7 @@ Technically 2FA is very easy to implement using existing libraries, and there is
 There are some additional things you should consider, though.
 
 ### Generating the shared key.
-The key used to generate the one-time passwords needs to be correctly generated in order to generate secure passwords. It it's not, it might be generating passwords easy to guess (silly example: if you accidentally use the same key for all users, they will all get the same passwords). Unless you really know what you are doing, you should not try to roll your own key-generator. 
+The key used to generate the one-time passwords needs to be correctly generated in order to generate secure passwords. If it's not, it might be generating passwords easy to guess (silly example: if you accidentally use the same key for all users, they will all get the same passwords). Unless you really know what you are doing, you should not try to roll your own key-generator. 
 
 Luckily, you do not have to do this yourself - there is a good spec, reference implementation, and a number of open-source libraries available. [Wikipedia is a good starting point](http://en.wikipedia.org/wiki/Time-based_One-time_Password_Algorithm), and you can have a look at the [Porotype TOTP example.](https://github.com/Porotype/TOTPassword) 
 
